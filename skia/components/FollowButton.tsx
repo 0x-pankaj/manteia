@@ -14,13 +14,16 @@ export const FollowButton: React.FC = () => {
   const getCurrentTimeIndex = usePriceStore((state) => state.getCurrentTimeIndex);
   const getCurrentPriceIndex = usePriceStore((state) => state.getCurrentPriceIndex);
 
-  const handlePress = () => {
+const handlePress = () => {
     if (!followLive) {
-      // Center to current price
+      // Center to current price - both X and Y
       const currentTimeIndex = getCurrentTimeIndex();
       const currentPriceIndex = getCurrentPriceIndex();
       
+      // Center horizontally (X axis - time)
       const targetX = -currentTimeIndex * cellWidth + width / 2;
+      
+      // Center vertically (Y axis - price)
       const targetY = -currentPriceIndex * cellHeight + height / 2;
       
       setOffset(targetX, targetY);
@@ -41,6 +44,7 @@ export const FollowButton: React.FC = () => {
     </TouchableOpacity>
   );
 };
+
 
 const styles = StyleSheet.create({
   button: {

@@ -1,7 +1,7 @@
 
 
 import { Circle, Text as SkiaText, matchFont } from '@shopify/react-native-skia';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import { useBetStore } from '../../state/betStore';
 import { useGridStore } from '../../state/gridStore';
@@ -48,7 +48,9 @@ export const BetLayer: React.FC = () => {
     });
   }, [bets]);
 
-  return (
+  const betElements = useMemo(() => {
+
+    return (
     <>
       {bets.map((bet) => {
         const { x, y } = getCellCenter(
@@ -141,5 +143,10 @@ export const BetLayer: React.FC = () => {
       })}
     </>
   );
+
+  }, [bets, contentOffsetX, contentOffsetY, cellWidth, cellHeight, winAnimations])
+
+  return <>{betElements}</>;
+  
 };
 

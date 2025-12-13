@@ -1,7 +1,7 @@
-const BASE_MULTIPLIER = 1.5; // Base odds multiplier
-const TIME_WEIGHT = 0.15; // Weight for time distance
-const PRICE_WEIGHT = 0.25; // Weight for price distance
-const HOUSE_EDGE = 0.08; // 8% house edge
+const BASE_MULTIPLIER = 0.5; // Base odds multiplier
+const TIME_WEIGHT = 0.1; // Weight for time distance
+const PRICE_WEIGHT = 0.025; // Weight for price distance
+const HOUSE_EDGE = 0.008; // 8% house edge
 
 /**
  * Calculate realistic odds based on time and price distance

@@ -13,6 +13,7 @@ import { usePriceStore } from '../../state/priceStore';
 import { useWalletStore } from '../../state/walletStore';
 import { checkLineSegmentCollisions } from '../../utils/collision';
 import { CanvasView } from './CanvasView';
+import { initSound, playWinSound } from '@/utils/sound';
 
 export default function GameScreen() {
   const addPoint = usePriceStore((state) => state.addPoint);
@@ -23,6 +24,11 @@ export default function GameScreen() {
   const bets = useBetStore((state) => state.bets);
   const settleBetAction = useBetStore((state) => state.settleBet);
   const addPayout = useWalletStore((state) => state.addPayout);
+
+  useEffect(() => {
+
+    initSound();
+  },[]);
 
   useEffect(() => {
     // Start price feed
@@ -72,7 +78,8 @@ export default function GameScreen() {
         settleBetAction(bet.id, response.won, response.payout);
         if (response.won) {
           addPayout(response.payout, bet.id);
-          console.log('💰 Win!', { payout: response.payout });
+          playWinSound();
+          console.log('Win!', { payout: response.payout });
         }
       }
     });

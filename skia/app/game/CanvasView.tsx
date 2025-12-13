@@ -1,6 +1,6 @@
 import { Canvas, useCanvasRef } from '@shopify/react-native-skia';
 import * as Haptics from 'expo-haptics';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS, useSharedValue } from 'react-native-reanimated';
@@ -41,15 +41,58 @@ export const CanvasView: React.FC = () => {
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
 
+  const lastUpdateTime = useRef(0);
+
+
+//   useEffect(() => {
+//   const now = Date.now();
+  
+//   if (followLive) {
+//     const currentTimeIndex = getCurrentTimeIndex();
+//     const currentPriceIndex = getCurrentPriceIndex();
+    
+//     const targetX = -currentTimeIndex * cellWidth + width / 2;
+//     const targetY = -currentPriceIndex * cellHeight + height / 2;
+    
+//     offsetX.value = targetX;
+//     offsetY.value = targetY;
+//     runOnJS(setOffset)(targetX, targetY);
+    
+//     lastUpdateTime.current = now;
+//   } else if (now - lastUpdateTime.current > 1000) {
+//     // Force a small offset update every second to trigger re-render
+//     // This ensures odds update even when not scrolling
+//     runOnJS(setOffset)(contentOffsetX, contentOffsetY);
+//     lastUpdateTime.current = now;
+//   }
+// }, [followLive, points.length]);
+
+
   // Auto-follow live price
-  useEffect(() => {
-    if (followLive) {
-      const currentTimeIndex = getCurrentTimeIndex();
-      const targetX = -currentTimeIndex * cellWidth + width / 2;
-      offsetX.value = targetX;
-      runOnJS(setOffset)(targetX, offsetY.value);
-    }
-  }, [followLive, points.length]);
+  // useEffect(() => {
+  //   if (followLive) {
+  //     const currentTimeIndex = getCurrentTimeIndex();
+  //     const targetX = -currentTimeIndex * cellWidth + width / 2;
+  //     offsetX.value = targetX;
+  //     runOnJS(setOffset)(targetX, offsetY.value);
+  //   }
+  // }, [followLive, points.length]);
+
+  
+useEffect(() => {
+  if (followLive && points.length > 0) {
+    const currentTimeIndex = getCurrentTimeIndex();
+    const currentPriceIndex = getCurrentPriceIndex();
+    
+    // Center both X and Y
+    const targetX = -currentTimeIndex * cellWidth + width / 2;
+    const targetY = -currentPriceIndex * cellHeight + height / 2;
+    
+    offsetX.value = targetX;
+    offsetY.value = targetY;
+    runOnJS(setOffset)(targetX, targetY);
+  }
+}, [followLive, points.length]);
 
   // ... existing imports ...
 

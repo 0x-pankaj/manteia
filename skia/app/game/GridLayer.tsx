@@ -1,7 +1,7 @@
 
 
 import { Rect, Text as SkiaText, matchFont } from '@shopify/react-native-skia';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Dimensions, Platform } from 'react-native';
 import { useBetStore } from '../../state/betStore';
 import { useGridStore } from '../../state/gridStore';
@@ -31,15 +31,16 @@ export const GridLayer: React.FC = () => {
   const getBetAtCell = useBetStore((state) => state.getBetAtCell);
   const points =  usePriceStore((state) => state.addPoint);
 
+  const currentTimeIndex = getCurrentTimeIndex();
+  const currentPriceIndex = getCurrentPriceIndex();
 
-
-  const startCol = Math.floor(-contentOffsetX / cellWidth) - 1;
+  const elements  = useMemo(() => {
+    const startCol = Math.floor(-contentOffsetX / cellWidth) - 1;
   const endCol = Math.ceil((width - contentOffsetX) / cellWidth) + 1;
   const startRow = Math.floor(-contentOffsetY / cellHeight) - 1;
   const endRow = Math.ceil((height - contentOffsetY) / cellHeight) + 1;
 
-  const currentTimeIndex = getCurrentTimeIndex();
-  const currentPriceIndex = getCurrentPriceIndex();
+
 
   const elements: React.ReactElement[] = [];
 
@@ -92,5 +93,10 @@ export const GridLayer: React.FC = () => {
   }
 
   return <>{elements}</>;
+
+  },  [contentOffsetX, contentOffsetY, cellWidth, cellHeight, currentTimeIndex, currentPriceIndex, points.length]);
+
+  return <>{elements}</>;
+
 };
 
