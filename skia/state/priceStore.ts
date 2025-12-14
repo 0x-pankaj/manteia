@@ -94,9 +94,9 @@ const MAX_POINTS = 600; // Keep last 10 minutes of data
 
 export const usePriceStore = create<PriceStore>((set, get) => ({
   points: [],
-  currentPrice: 3820,
+  currentPrice: 90000,
   startTime: Date.now(),
-  basePrice: 3820,
+  basePrice: 90000,
 
   addPoint: (point) => set((state) => {
     const newPoints = [...state.points, point];
