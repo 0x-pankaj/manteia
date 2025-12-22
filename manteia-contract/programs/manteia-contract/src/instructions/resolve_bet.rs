@@ -1,13 +1,13 @@
-use anchor_lang::prelude::*;
-use crate::state::{ProxyAccount, BACKEND_AUTHORITY};
-use crate::events::BetResolvedEvent;
 use crate::errors::BettingError;
+use crate::events::BetResolvedEvent;
+use crate::state::{ProxyAccount, BACKEND_AUTHORITY};
+use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct ResolveBet<'info> {
     #[account(mut)]
     pub proxy_account: Account<'info, ProxyAccount>,
-    
+
     #[account(
         constraint = *backend_authority.key == BACKEND_AUTHORITY @ BettingError::Unauthorized
     )]
@@ -27,19 +27,18 @@ pub fn resolve_bet(
     // Find the bet by bet_id and copy necessary data
     let mut bet_slot = None;
     let mut bet_amount = 0u64;
-    let mut bet_owner = Pubkey::default();
-    
+
     for (i, bet) in proxy_account.bets.iter().enumerate() {
         if bet.active && bet.bet_id == bet_id {
             bet_slot = Some(i);
-            bet_amount = bet.amount; // Copy the amount before mutable borrow
+            bet_amount = bet.amount;
             break;
         }
     }
 
     let slot = bet_slot.ok_or(BettingError::BetNotActive)?;
-    let proxy_owner = proxy_account.owner;
-    
+    let bet_owner = proxy_account.owner;
+
     // Now we can safely get mutable reference
     let bet = &mut proxy_account.bets[slot];
 
@@ -50,9 +49,6 @@ pub fn resolve_bet(
         bet.is_valid_time_window(current_time),
         BettingError::PredictionWindowNotEnded
     );
-
-    // Copy owner before marking resolved
-    bet_owner = proxy_owner;
 
     // Mark as resolved
     bet.resolved = true;
@@ -65,12 +61,12 @@ pub fn resolve_bet(
         .checked_sub(1)
         .ok_or(BettingError::ArithmeticOverflow)?;
 
-    // Credit payout if won
+    // Credit payout if won to unclaimed balance
     if won {
         require!(payout_amount > 0, BettingError::InvalidBetAmount);
-        
-        proxy_account.balance = proxy_account
-            .balance
+
+        proxy_account.unclaimed_balance = proxy_account
+            .unclaimed_balance
             .checked_add(payout_amount)
             .ok_or(BettingError::ArithmeticOverflow)?;
     }

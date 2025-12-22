@@ -67,8 +67,6 @@ use crate::errors::BettingError;
         let slot = slot_index.ok_or(BettingError::TooManyActiveBets)?;
         let bet_id = proxy_account.total_bets_placed;
 
-        // Calculate payout multiplier based on window duration (example: 5s = 2x)
-        let duration = prediction_end_time - prediction_start_time;
         
 
         // Create bet
@@ -113,5 +111,6 @@ use crate::errors::BettingError;
             target_price_range_end
         );
 
+        // ctx.accounts.proxy_account.exit(&crate::ID)?;
         Ok(())
     }

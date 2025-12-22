@@ -3,13 +3,13 @@ use ephemeral_rollups_sdk::anchor::{commit, delegate, ephemeral};
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
 use ephemeral_rollups_sdk::ephem::{commit_accounts, commit_and_undelegate_accounts};
 
-pub mod instructions;
-pub mod state;
 pub mod errors;
 pub mod events;
+pub mod instructions;
+pub mod state;
 
-use instructions::*;
 use crate::state::ProxyAccount;
+use instructions::*;
 
 declare_id!("HCvWBZpYDeiTMUaSmCRm5jP67M6wYV2NDBjAG4qdDLNE");
 
@@ -22,20 +22,23 @@ pub mod manteia_contract {
     pub fn create_proxy_account(ctx: Context<CreateProxyAccount>) -> Result<()> {
         instructions::create_proxy_account::create_proxy_account(ctx)
     }
-    
-    pub fn delegate_proxy_account(
-        ctx: Context<DelegateProxyAccount>
-    ) -> Result<()> {
-        ctx.accounts.delegate_pda(&ctx.accounts.payer, &[b"proxy", ctx.accounts.payer.key().as_ref()], 
-        // DelegateConfig { commit_frequency_ms: (), validator: () }
-        DelegateConfig {
-                validator: ctx.remaining_accounts.first().map(|acc| acc.key()),
-                ..Default::default()
-            }
-    )?;
-        Ok(())
+
+    pub fn initialize_game_account(ctx: Context<InitializeGameAccount>) -> Result<()> {
+        instructions::initialize_game_account::initialize_game_account(ctx)
     }
 
+    pub fn delegate_proxy_account(ctx: Context<DelegateProxyAccount>) -> Result<()> {
+        ctx.accounts.delegate_pda(
+            &ctx.accounts.payer,
+            &[b"proxy", ctx.accounts.payer.key().as_ref()],
+            // DelegateConfig { commit_frequency_ms: (), validator: () }
+            DelegateConfig {
+                validator: ctx.remaining_accounts.first().map(|acc| acc.key()),
+                ..Default::default()
+            },
+        )?;
+        Ok(())
+    }
 
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
         instructions::deposit::deposit(ctx, amount)
@@ -57,10 +60,9 @@ pub mod manteia_contract {
             target_price_range_end,
             prediction_start_time,
             prediction_end_time,
-            payout_multiplier
+            payout_multiplier,
         )
     }
-
 
     pub fn resolve_bet(
         ctx: Context<ResolveBet>,
@@ -72,23 +74,28 @@ pub mod manteia_contract {
     }
 
     pub fn commit_state(ctx: Context<CommitState>) -> Result<()> {
-
-            commit_accounts(&ctx.accounts.payer,
-                 vec![&ctx.accounts.proxy_account.to_account_info()],
-                  &ctx.accounts.magic_context,
-                   &ctx.accounts.magic_program
-                )?;
+        commit_accounts(
+            &ctx.accounts.payer,
+            vec![&ctx.accounts.proxy_account.to_account_info()],
+            &ctx.accounts.magic_context,
+            &ctx.accounts.magic_program,
+        )?;
 
         Ok(())
     }
 
     pub fn commit_and_undelegate_account(ctx: Context<CommitState>) -> Result<()> {
-        commit_and_undelegate_accounts(&ctx.accounts.payer,
-             vec![&ctx.accounts.proxy_account.to_account_info()],
-              &ctx.accounts.magic_context,
-               &ctx.accounts.magic_program
-            )?;
+        commit_and_undelegate_accounts(
+            &ctx.accounts.payer,
+            vec![&ctx.accounts.proxy_account.to_account_info()],
+            &ctx.accounts.magic_context,
+            &ctx.accounts.magic_program,
+        )?;
         Ok(())
+    }
+
+    pub fn claim_and_commit(ctx: Context<ClaimAndCommit>) -> Result<()> {
+        instructions::claim::claim_and_commit(ctx)
     }
 
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
@@ -102,10 +109,13 @@ pub struct DelegateProxyAccount<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     /// CHECK: This account is the PDA to be delegated to the ephemeral rollup
-    #[account(mut, del)]
+    #[account(
+        mut,
+         del,
+        seeds = [b"proxy", payer.key().as_ref()],
+        bump,
+        )]
     pub pda: AccountInfo<'info>,
-    /// CHECK: PDA authority is verified by the ephemeral rollup SDK
-    pub pda_authority: AccountInfo<'info>,
 }
 
 #[commit]
@@ -117,11 +127,11 @@ pub struct CommitState<'info> {
         seeds = [b"proxy", payer.key().as_ref()],
         bump
     )]
-      pub proxy_account: Account<'info, ProxyAccount>,
-    
+    pub proxy_account: Account<'info, ProxyAccount>,
+
     /// CHECK: Magic context account verified by ephemeral rollup SDK
     pub magic_context: AccountInfo<'info>,
-    
+
     /// CHECK: Magic program account verified by ephemeral rollup SDK
     pub magic_program: AccountInfo<'info>,
 }
